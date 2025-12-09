@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 ENV XCRYSDEN_TAR_FILE=xcrysden-1.6.2-linux_x86_64-shared.tar.gz
 ENV XCRYSDEN_DOWNLOAD_URL="http://www.xcrysden.org/download/${XCRYSDEN_TAR_FILE}"
@@ -6,6 +6,7 @@ ENV XCRYSDEN_INSTALL_DIR=/opt/xcrysden
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        bc \
         wget \
         tar \
         tk \
