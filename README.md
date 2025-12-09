@@ -15,5 +15,7 @@ podman build -t xcrysden https://github.com/PolykekBros/xcrysden-container.git
           --net=host \
           -e DISPLAY=$DISPLAY \
           -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+          -v $HOME:$HOME \
+          --userns=keep-id \
           xcrysden
 ```
