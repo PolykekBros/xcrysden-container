@@ -2,13 +2,21 @@
 
 How to run
 
-## Step 1. Build
+## 1. Directly with `run.sh`
+
+```console
+>  curl -sSL https://raw.githubusercontent.com/PolykekBros/xcrysden-container/main/run.sh | sh
+```
+
+## 2. Manually
+
+### Step 1. Build
 
 ```console
 > podman build -t xcrysden https://github.com/PolykekBros/xcrysden-container.git
 ```
 
-## Step 2. Run
+### Step 2. Run
 
 This is maybe required on fedora system
 
