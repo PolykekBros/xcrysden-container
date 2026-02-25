@@ -21,26 +21,31 @@ if ! command -v podman > /dev/null 2>&1; then
 fi
 
 OS=$(uname -s)
-IMAGE_NAME="localhost/xcrysden"
+IMAGE_NAME="ghcr.io/polykekbros/xcrysden-container:latest"
 REPO_URL="https://github.com/PolykekBros/xcrysden-container.git"
 
 echo -e "${BLUE}=======================================${NC}"
 echo -e "${BLUE}        ⚛️  XCrySDen Launcher ⚛️        ${NC}"
 echo -e "${BLUE}=======================================${NC}"
 
-# 1. Check if image exists; build if missing
+# 1. Check if image exists; pull if missing, build as last resort
 info "Checking for image '$IMAGE_NAME'..."
 if [ -z "$(podman images -q "$IMAGE_NAME" 2>/dev/null)" ]; then
-    warning "Image not found. Building XCrySDen container from local Containerfile..."
-    
-    # Detect architecture for Podman build (especially important on macOS M1/M2)
-    ARCH=$(podman info --format '{{.Host.Arch}}')
-    info "Building for architecture: $ARCH"
-    
-    podman build --arch="$ARCH" -t "$IMAGE_NAME" .
-    success "Image built successfully!"
+    info "Image not found locally. Attempting to pull from GHCR..."
+    if ! podman pull "$IMAGE_NAME"; then
+        warning "Failed to pull from GHCR. Building XCrySDen container from local Containerfile..."
+        
+        # Detect architecture for Podman build (especially important on macOS M1/M2)
+        ARCH=$(podman info --format '{{.Host.Arch}}')
+        info "Building for architecture: $ARCH"
+        
+        podman build --arch="$ARCH" -t "$IMAGE_NAME" .
+        success "Image built successfully!"
+    else
+        success "Image pulled successfully!"
+    fi
 else
-    success "Image '$IMAGE_NAME' exists. Skipping build..."
+    success "Image '$IMAGE_NAME' exists. Skipping pull/build..."
 fi
 
 # 2. Extract arguments
