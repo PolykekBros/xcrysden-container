@@ -10,10 +10,11 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # --- Helper Functions ---
-info() { echo -e "${CYAN}ℹ️  $1${NC}"; }
-success() { echo -e "${GREEN}✅ $1${NC}"; }
-warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-error() { echo -e "${RED}❌ $1${NC}"; exit 1; }
+# Use printf for portability across different shells (sh, bash, zsh)
+info() { printf "${CYAN}ℹ️  %s${NC}\n" "$1"; }
+success() { printf "${GREEN}✅ %s${NC}\n" "$1"; }
+warning() { printf "${YELLOW}⚠️  %s${NC}\n" "$1"; }
+error() { printf "${RED}❌ %s${NC}\n" "$1"; exit 1; }
 
 # Check if podman is installed
 if ! command -v podman > /dev/null 2>&1; then
@@ -24,22 +25,30 @@ OS=$(uname -s)
 IMAGE_NAME="ghcr.io/polykekbros/xcrysden-container:latest"
 REPO_URL="https://github.com/PolykekBros/xcrysden-container.git"
 
-echo -e "${BLUE}=======================================${NC}"
-echo -e "${BLUE}        ⚛️  XCrySDen Launcher ⚛️        ${NC}"
-echo -e "${BLUE}=======================================${NC}"
+printf "${BLUE}=======================================${NC}\n"
+printf "${BLUE}        ⚛️  XCrySDen Launcher ⚛️        ${NC}\n"
+printf "${BLUE}=======================================${NC}\n"
 
 # 1. Check if image exists; pull if missing, build as last resort
 info "Checking for image '$IMAGE_NAME'..."
 if [ -z "$(podman images -q "$IMAGE_NAME" 2>/dev/null)" ]; then
     info "Image not found locally. Attempting to pull from GHCR..."
     if ! podman pull "$IMAGE_NAME"; then
-        warning "Failed to pull from GHCR. Building XCrySDen container from local Containerfile..."
+        warning "Failed to pull from GHCR (Make sure 'xcrysden-container' Package is set to PUBLIC on GitHub)."
         
-        # Detect architecture for Podman build (especially important on macOS M1/M2)
+        # Determine build context (local if available, otherwise remote Git URL)
+        if [ -f "Containerfile" ]; then
+            BUILD_CONTEXT="."
+            info "Building XCrySDen container from local Containerfile..."
+        else
+            BUILD_CONTEXT="$REPO_URL"
+            info "Containerfile not found locally. Building directly from $REPO_URL..."
+        fi
+
         ARCH=$(podman info --format '{{.Host.Arch}}')
         info "Building for architecture: $ARCH"
         
-        podman build --arch="$ARCH" -t "$IMAGE_NAME" .
+        podman build --arch="$ARCH" -t "$IMAGE_NAME" "$BUILD_CONTEXT"
         success "Image built successfully!"
     else
         success "Image pulled successfully!"
